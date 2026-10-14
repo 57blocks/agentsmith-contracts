@@ -1,0 +1,12 @@
+[workspace]
+members = ["e2e-simple-account", "upto-settlement-kernel"]
+resolver = "2"
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+lto = true
+codegen-units = 1
+panic = "abort"

@@ -1,0 +1,82 @@
+{
+  "network": "stellar:testnet",
+  "networkPassphrase": "Test SDF Network ; September 2015",
+  "current": {
+    "status": "active",
+    "abi": "two-boundary-v1",
+    "abiSummary": "SettlementTerms { payer, asset, pay_to, facilitator, max_amount, valid_after_ledger, deadline_ledger }; settle(terms, actual_amount); settle_with_approval(terms, actual_amount); errors 1..6",
+    "contractId": "CCXSVNSOC7SPODRUZCWIFYNPHAHNFOMY4BGRO2MRUIV54QLOWJJWOID4",
+    "wasmHash": "5a5b84a0db31c41e3d7b5d563c0aabb55d30fac69f269815162f94094353806b",
+    "installTransaction": "eef1899c90f4f5ec6c3f7dcb1b2f7875231f54775146fe383de2d52c16bb85b9",
+    "deployTransaction": "c15de85dfd4e7bc00520cba5b0b34701d329e6a536e27888ffc71d144f9a5873",
+    "deployedAt": "2026-09-02",
+    "deployer": "GDLBXVYCYOSC4NOB6ZEL6DPX4NJMIXG2ELPJJK3LFIHLPMUGIAMJYSMJ",
+    "wasmHashVerified": "local build of contracts/upto-settlement-kernel produced the same hash",
+    "abiVerified": "stellar contract info interface on the deployed id returns the 7-field SettlementTerms and errors 1..6 from the current source",
+    "payer": "GBW2N6DQ5QQVVUFBMH7KORTUB55JMVJCRAXEAUONUHUGB4ETE5KZ7FNI",
+    "payTo": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
+    "facilitator": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
+    "asset": "USDC (testnet issuer GBBD47IF...), 7 decimals",
+    "smokeTests": [
+      {
+        "transport": "http",
+        "transaction": "a5ffe49f62697c1ae4834b9e6bc6c3d3789ac2efaea65371009a5718b204a440",
+        "ledger": 4461976,
+        "method": "settle_with_approval",
+        "amountAtomic": "10000",
+        "feeCharged": 36525
+      },
+      {
+        "transport": "mcp",
+        "transaction": "f707191c350ae86d98325115f5e5fed7c395f9a8fc5fec55f25cd491171811c9",
+        "ledger": 4461984,
+        "method": "settle_with_approval",
+        "amountAtomic": "10000",
+        "feeCharged": 33919
+      }
+    ],
+    "smokeTestNotes": [
+      "Both transactions have the facilitator as the transaction source, so the buyer spent no XLM. Fee sponsorship holds.",
+      "USDC moved 20.9759 -> 20.9739 on the payer and 19.0241 -> 19.0261 on the payee, matching two settlements of 10000 atomic units.",
+      "Driven by weather-metar/_upto-buyer.mjs and _upto-mcp-buyer.mjs. These are project-written buyers, not the canonical x402 client, so this is implementation evidence and not conformance evidence."
+    ]
+  },
+  "history": [
+    {
+      "status": "deprecated",
+      "abi": "valid-after-plus-approval-terms-v0",
+      "abiSummary": "SettlementTerms { asset, facilitator, max_amount, pay_to, payer, valid_after_ledger } with no deadline_ledger; settle_with_approval(terms, actual_amount, approval: ApprovalTerms { amount, live_until_ledger }); errors 1..5 with NotYetValid = 4",
+      "contractId": "CAUEGFKFNLELTJDIRFEFE4JSAXRKP5JB6NCZN4I33DFCECICQM7IUUEI",
+      "note": "Found on chain and referenced by contracts/.env, but never recorded here. A separate design line that moved approval amount and expiry out of the settlement terms. Install and deploy transactions are unknown. Incompatible with the current source: different arity, no deadline_ledger, and a different error numbering."
+    },
+    {
+      "status": "deprecated",
+      "abi": "single-deadline-v0",
+      "abiSummary": "SettlementTerms { asset, deadline_ledger, facilitator, max_amount, pay_to, payer } with no valid_after_ledger; settle_with_approval(terms, actual_amount); errors 1..4",
+      "contractId": "CBPD665T5R6VJOCB53GLEAWIEETBQECIIBBOKH3FZMOUM5NJ6RQS3BID",
+      "wasmHash": "783ea5d48649715ec889d3ca4984af7870b77aafe111f1e2ec225beb05bb5682",
+      "installTransaction": "6e49245262776755c3cb594b2bf660b9d85edc8a2a338242d4e15af9280fb996",
+      "deployTransaction": "c14c68842d719d963bc0836b890e82700936e67e84146103e18b3fe682cae92d",
+      "note": "Retained as the only settlement evidence produced before the two-boundary ABI. Do not point a facilitator at it.",
+      "smokeTests": [
+        {
+          "transport": "http",
+          "transaction": "33e539f846ef8b627c1fbf6e18edfdf5eed5d2ccc922fec7fe2d9125043a14de",
+          "ledger": 4458083,
+          "method": "settle_with_approval",
+          "amountAtomic": "10000"
+        },
+        {
+          "transport": "mcp",
+          "transaction": "893c2a8f515affbacecdb00c45417ec0e7211d7dde16d2f63a63e3aea61d3ee8",
+          "ledger": 4458091,
+          "method": "settle_with_approval",
+          "amountAtomic": "10000"
+        }
+      ],
+      "payer": "GBW2N6DQ5QQVVUFBMH7KORTUB55JMVJCRAXEAUONUHUGB4ETE5KZ7FNI",
+      "payTo": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
+      "facilitator": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY"
+    }
+  ]
+}
