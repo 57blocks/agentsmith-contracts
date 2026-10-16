@@ -12,7 +12,7 @@ use soroban_sdk::{
 };
 
 #[test]
-fn settles_actual_amount_directly_with_existing_allowance() {
+fn settles_actual_amount_when_allowance_already_exists() {
     let env = Env::default();
     env.mock_all_auths();
 
@@ -259,65 +259,6 @@ fn rejects_an_inverted_validity_window() {
 }
 
 #[test]
-fn buyer_signs_the_maximum_terms_and_facilitator_signs_the_actual_amount() {
-    let env = Env::default();
-    env.mock_all_auths();
-
-    let admin = Address::generate(&env);
-    let payer = Address::generate(&env);
-    let pay_to = Address::generate(&env);
-    let facilitator = Address::generate(&env);
-    let asset = env
-        .register_stellar_asset_contract_v2(admin.clone())
-        .address();
-    let token = TokenClient::new(&env, &asset);
-    StellarAssetClient::new(&env, &asset).mint(&payer, &200_000);
-
-    let kernel_address = env.register(UptoSettlementKernel, ());
-    let kernel = UptoSettlementKernelClient::new(&env, &kernel_address);
-    token.approve(&payer, &kernel_address, &100_000, &1_000);
-    let terms = SettlementTerms {
-        payer: payer.clone(),
-        asset,
-        pay_to,
-        facilitator: facilitator.clone(),
-        max_amount: 100_000,
-        valid_after_ledger: 0,
-        deadline_ledger: 1_000,
-    };
-
-    kernel.settle(&terms, &40_000);
-
-    assert_eq!(
-        env.auths(),
-        std::vec![
-            (
-                payer,
-                AuthorizedInvocation {
-                    function: AuthorizedFunction::Contract((
-                        kernel_address.clone(),
-                        symbol_short!("settle"),
-                        (terms.clone(),).into_val(&env),
-                    )),
-                    sub_invocations: std::vec![],
-                },
-            ),
-            (
-                facilitator,
-                AuthorizedInvocation {
-                    function: AuthorizedFunction::Contract((
-                        kernel_address,
-                        symbol_short!("settle"),
-                        (terms, 40_000_i128).into_val(&env),
-                    )),
-                    sub_invocations: std::vec![],
-                },
-            ),
-        ],
-    );
-}
-
-#[test]
 fn atomically_approves_and_settles_when_no_allowance_exists() {
     let env = Env::default();
     env.mock_all_auths();
@@ -344,7 +285,7 @@ fn atomically_approves_and_settles_when_no_allowance_exists() {
         deadline_ledger: 1_000,
     };
 
-    kernel.settle_with_approval(&terms, &40_000);
+    kernel.settle(&terms, &40_000);
 
     assert_eq!(token.balance(&payer), 160_000);
     assert_eq!(token.balance(&pay_to), 40_000);
@@ -352,7 +293,7 @@ fn atomically_approves_and_settles_when_no_allowance_exists() {
 }
 
 #[test]
-fn approval_path_binds_buyer_maximum_and_facilitator_actual_amount() {
+fn settlement_binds_buyer_maximum_and_facilitator_actual_amount() {
     let env = Env::default();
     env.mock_all_auths();
 
@@ -377,7 +318,7 @@ fn approval_path_binds_buyer_maximum_and_facilitator_actual_amount() {
         deadline_ledger: 1_000,
     };
 
-    kernel.settle_with_approval(&terms, &40_000);
+    kernel.settle(&terms, &40_000);
 
     assert_eq!(
         env.auths(),
@@ -387,7 +328,7 @@ fn approval_path_binds_buyer_maximum_and_facilitator_actual_amount() {
                 AuthorizedInvocation {
                     function: AuthorizedFunction::Contract((
                         kernel_address.clone(),
-                        Symbol::new(&env, "settle_with_approval"),
+                        Symbol::new(&env, "settle"),
                         (terms.clone(),).into_val(&env),
                     )),
                     sub_invocations: std::vec![AuthorizedInvocation {
@@ -406,7 +347,7 @@ fn approval_path_binds_buyer_maximum_and_facilitator_actual_amount() {
                 AuthorizedInvocation {
                     function: AuthorizedFunction::Contract((
                         kernel_address,
-                        Symbol::new(&env, "settle_with_approval"),
+                        Symbol::new(&env, "settle"),
                         (terms, 40_000_i128).into_val(&env),
                     )),
                     sub_invocations: std::vec![],
@@ -433,7 +374,7 @@ fn failed_transfer_rolls_back_the_inline_approval() {
 
     let kernel_address = env.register(UptoSettlementKernel, ());
     let kernel = UptoSettlementKernelClient::new(&env, &kernel_address);
-    let result = kernel.try_settle_with_approval(
+    let result = kernel.try_settle(
         &SettlementTerms {
             payer: payer.clone(),
             asset,
@@ -516,6 +457,21 @@ impl Fixture {
         UptoSettlementKernelClient::new(&self.env, &self.kernel)
     }
 
+    fn approval(&self, terms: &SettlementTerms) -> MockAuthInvoke<'_> {
+        MockAuthInvoke {
+            contract: &self.asset,
+            fn_name: "approve",
+            args: (
+                self.payer.clone(),
+                self.kernel.clone(),
+                terms.max_amount,
+                terms.deadline_ledger,
+            )
+                .into_val(&self.env),
+            sub_invokes: &[],
+        }
+    }
+
     /// No value moved, and the Kernel holds nothing of its own.
     fn assert_no_settlement(&self) {
         assert_eq!(self.token().balance(&self.payer), 200_000);
@@ -528,7 +484,7 @@ impl Fixture {
 fn settle_rejects_a_missing_facilitator_authorization() {
     let f = fixture();
     let terms = f.terms();
-    f.token().approve(&f.payer, &f.kernel, &100_000, &1_000);
+    let approval = f.approval(&terms);
 
     f.env.mock_auths(&[MockAuth {
         address: &f.payer,
@@ -536,7 +492,7 @@ fn settle_rejects_a_missing_facilitator_authorization() {
             contract: &f.kernel,
             fn_name: "settle",
             args: (terms.clone(),).into_val(&f.env),
-            sub_invokes: &[],
+            sub_invokes: core::slice::from_ref(&approval),
         },
     }]);
 
@@ -548,7 +504,7 @@ fn settle_rejects_a_missing_facilitator_authorization() {
 fn settle_rejects_a_facilitator_authorization_for_a_different_amount() {
     let f = fixture();
     let terms = f.terms();
-    f.token().approve(&f.payer, &f.kernel, &100_000, &1_000);
+    let approval = f.approval(&terms);
 
     f.env.mock_auths(&[
         MockAuth {
@@ -557,7 +513,7 @@ fn settle_rejects_a_facilitator_authorization_for_a_different_amount() {
                 contract: &f.kernel,
                 fn_name: "settle",
                 args: (terms.clone(),).into_val(&f.env),
-                sub_invokes: &[],
+                sub_invokes: core::slice::from_ref(&approval),
             },
         },
         MockAuth {
@@ -584,7 +540,7 @@ fn settle_rejects_a_redirected_payee() {
         pay_to: thief.clone(),
         ..f.terms()
     };
-    f.token().approve(&f.payer, &f.kernel, &100_000, &1_000);
+    let approval = f.approval(&signed);
 
     f.env.mock_auths(&[
         MockAuth {
@@ -593,7 +549,7 @@ fn settle_rejects_a_redirected_payee() {
                 contract: &f.kernel,
                 fn_name: "settle",
                 args: (signed,).into_val(&f.env),
-                sub_invokes: &[],
+                sub_invokes: core::slice::from_ref(&approval),
             },
         },
         MockAuth {
@@ -620,7 +576,7 @@ fn settle_rejects_a_maximum_raised_above_the_signed_terms() {
         ..f.terms()
     };
     let raised = f.terms();
-    f.token().approve(&f.payer, &f.kernel, &100_000, &1_000);
+    let approval = f.approval(&signed);
 
     f.env.mock_auths(&[
         MockAuth {
@@ -629,7 +585,7 @@ fn settle_rejects_a_maximum_raised_above_the_signed_terms() {
                 contract: &f.kernel,
                 fn_name: "settle",
                 args: (signed,).into_val(&f.env),
-                sub_invokes: &[],
+                sub_invokes: core::slice::from_ref(&approval),
             },
         },
         MockAuth {
@@ -648,7 +604,52 @@ fn settle_rejects_a_maximum_raised_above_the_signed_terms() {
 }
 
 #[test]
-fn an_authorization_for_one_entry_point_does_not_authorize_the_other() {
+fn settlement_rejects_authorizations_for_the_old_method_name() {
+    let f = fixture();
+    let terms = f.terms();
+    let approval = f.approval(&terms);
+
+    f.env.mock_auths(&[
+        MockAuth {
+            address: &f.payer,
+            invoke: &MockAuthInvoke {
+                contract: &f.kernel,
+                fn_name: "settle_with_approval",
+                args: (terms.clone(),).into_val(&f.env),
+                sub_invokes: core::slice::from_ref(&approval),
+            },
+        },
+        MockAuth {
+            address: &f.facilitator,
+            invoke: &MockAuthInvoke {
+                contract: &f.kernel,
+                fn_name: "settle_with_approval",
+                args: (terms.clone(), 40_000_i128).into_val(&f.env),
+                sub_invokes: &[],
+            },
+        },
+    ]);
+
+    assert!(f.client().try_settle(&terms, &40_000).is_err());
+    f.assert_no_settlement();
+    assert_eq!(f.token().allowance(&f.payer, &f.kernel), 0);
+}
+
+#[test]
+fn the_old_entry_point_is_not_exported() {
+    let f = fixture();
+    let result = f.env.try_invoke_contract::<(), HostError>(
+        &f.kernel,
+        &Symbol::new(&f.env, "settle_with_approval"),
+        (f.terms(), 40_000_i128).into_val(&f.env),
+    );
+
+    assert!(result.is_err());
+    f.assert_no_settlement();
+}
+
+#[test]
+fn settlement_rejects_a_buyer_authorization_without_the_nested_approval() {
     let f = fixture();
     let terms = f.terms();
 
@@ -673,25 +674,23 @@ fn an_authorization_for_one_entry_point_does_not_authorize_the_other() {
         },
     ]);
 
-    assert!(f
-        .client()
-        .try_settle_with_approval(&terms, &40_000)
-        .is_err());
+    assert!(f.client().try_settle(&terms, &40_000).is_err());
     f.assert_no_settlement();
     assert_eq!(f.token().allowance(&f.payer, &f.kernel), 0);
 }
 
 #[test]
-fn approval_path_rejects_a_buyer_authorization_without_the_nested_approval() {
+fn existing_allowance_does_not_bypass_the_nested_approval_authorization() {
     let f = fixture();
     let terms = f.terms();
+    f.token().approve(&f.payer, &f.kernel, &100_000, &1_000);
 
     f.env.mock_auths(&[
         MockAuth {
             address: &f.payer,
             invoke: &MockAuthInvoke {
                 contract: &f.kernel,
-                fn_name: "settle_with_approval",
+                fn_name: "settle",
                 args: (terms.clone(),).into_val(&f.env),
                 sub_invokes: &[],
             },
@@ -700,23 +699,20 @@ fn approval_path_rejects_a_buyer_authorization_without_the_nested_approval() {
             address: &f.facilitator,
             invoke: &MockAuthInvoke {
                 contract: &f.kernel,
-                fn_name: "settle_with_approval",
+                fn_name: "settle",
                 args: (terms.clone(), 40_000_i128).into_val(&f.env),
                 sub_invokes: &[],
             },
         },
     ]);
 
-    assert!(f
-        .client()
-        .try_settle_with_approval(&terms, &40_000)
-        .is_err());
+    assert!(f.client().try_settle(&terms, &40_000).is_err());
     f.assert_no_settlement();
-    assert_eq!(f.token().allowance(&f.payer, &f.kernel), 0);
+    assert_eq!(f.token().allowance(&f.payer, &f.kernel), 100_000);
 }
 
 #[test]
-fn approval_path_accepts_exactly_the_expected_authorization_tree() {
+fn settlement_accepts_exactly_the_expected_authorization_tree() {
     let f = fixture();
     let terms = f.terms();
 
@@ -725,7 +721,7 @@ fn approval_path_accepts_exactly_the_expected_authorization_tree() {
             address: &f.payer,
             invoke: &MockAuthInvoke {
                 contract: &f.kernel,
-                fn_name: "settle_with_approval",
+                fn_name: "settle",
                 args: (terms.clone(),).into_val(&f.env),
                 sub_invokes: &[MockAuthInvoke {
                     contract: &f.asset,
@@ -740,14 +736,14 @@ fn approval_path_accepts_exactly_the_expected_authorization_tree() {
             address: &f.facilitator,
             invoke: &MockAuthInvoke {
                 contract: &f.kernel,
-                fn_name: "settle_with_approval",
+                fn_name: "settle",
                 args: (terms.clone(), 40_000_i128).into_val(&f.env),
                 sub_invokes: &[],
             },
         },
     ]);
 
-    f.client().settle_with_approval(&terms, &40_000);
+    f.client().settle(&terms, &40_000);
 
     assert_eq!(f.token().balance(&f.payer), 160_000);
     assert_eq!(f.token().balance(&f.pay_to), 40_000);
@@ -758,7 +754,7 @@ fn approval_path_accepts_exactly_the_expected_authorization_tree() {
 fn a_settled_authorization_cannot_be_replayed() {
     let f = fixture();
     let terms = f.terms();
-    f.token().approve(&f.payer, &f.kernel, &100_000, &1_000);
+    let approval = f.approval(&terms);
 
     f.env.mock_auths(&[
         MockAuth {
@@ -767,7 +763,7 @@ fn a_settled_authorization_cannot_be_replayed() {
                 contract: &f.kernel,
                 fn_name: "settle",
                 args: (terms.clone(),).into_val(&f.env),
-                sub_invokes: &[],
+                sub_invokes: core::slice::from_ref(&approval),
             },
         },
         MockAuth {
@@ -796,11 +792,11 @@ fn a_settled_authorization_cannot_be_replayed() {
  * granted the Kernel and shortens its expiry to the settlement deadline. This
  * pins the behaviour so a change to it is a deliberate one. */
 #[test]
-fn the_approval_path_overwrites_a_larger_pre_existing_allowance() {
+fn settlement_overwrites_a_larger_pre_existing_allowance() {
     let f = fixture();
     f.token().approve(&f.payer, &f.kernel, &500_000, &5_000);
 
-    f.client().settle_with_approval(&f.terms(), &40_000);
+    f.client().settle(&f.terms(), &40_000);
 
     assert_eq!(f.token().allowance(&f.payer, &f.kernel), 60_000);
 

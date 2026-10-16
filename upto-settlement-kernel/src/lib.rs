@@ -57,24 +57,6 @@ fn validate_settlement(env: &Env, terms: &SettlementTerms, actual_amount: i128) 
 impl UptoSettlementKernel {
     pub fn settle(env: Env, terms: SettlementTerms, actual_amount: i128) {
         validate_settlement(&env, &terms, actual_amount);
-        terms
-            .payer
-            .require_auth_for_args((terms.clone(),).into_val(&env));
-        terms
-            .facilitator
-            .require_auth_for_args((terms.clone(), actual_amount).into_val(&env));
-
-        let kernel = env.current_contract_address();
-        TokenClient::new(&env, &terms.asset).transfer_from(
-            &kernel,
-            &terms.payer,
-            &terms.pay_to,
-            &actual_amount,
-        );
-    }
-
-    pub fn settle_with_approval(env: Env, terms: SettlementTerms, actual_amount: i128) {
-        validate_settlement(&env, &terms, actual_amount);
 
         terms
             .payer
