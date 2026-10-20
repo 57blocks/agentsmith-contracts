@@ -33,8 +33,21 @@
       "onChainFunctions": [
         "settle"
       ],
-      "paidSettlementE2E": "not run against this deployment"
-    }
+      "paidSettlementE2E": "passed: buyer authorization built by @agentsmith x402-sdk UptoStellarClient, facilitator settled a smaller actual amount"
+    },
+    "smokeTests": [
+      {
+        "transport": "direct",
+        "transaction": "38b617d6afae93161480ccddae60adbd91ba36739fab701ab0b869b0dd78093d",
+        "ledger": 5288725,
+        "method": "settle",
+        "maxAmountAtomic": "10000",
+        "amountAtomic": "4000"
+      }
+    ],
+    "smokeTestNotes": [
+      "Payer USDC 0.9920000 -> 0.9916000 and payee 0.0050000 -> 0.0054000, matching a 4000 atomic settlement under a 10000 maximum. The facilitator was the transaction source and payee."
+    ]
   },
   "history": [
     {
