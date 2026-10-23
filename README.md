@@ -86,7 +86,7 @@ not replace it.
 
 A missing or wrong authorization fails with the host's authorization error.
 
-## Known limitations
+## Notes
 
 - `max_amount` caps one authorization, not all authorizations with the same terms. Separately
   signed authorizations can each settle up to that maximum.
