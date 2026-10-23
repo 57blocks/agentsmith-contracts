@@ -4,8 +4,9 @@ These contracts move user funds. They have **not been audited**.
 
 ## Reporting a vulnerability
 
-Email **agentsmith@57blocks.com**. Do not open a public issue, pull request or discussion for a
-suspected vulnerability.
+Reports are welcome. Open an
+[issue](https://github.com/57blocks/agentsmith-contracts/issues) on GitHub, or email
+**agentsmith@57blocks.com** if you would rather tell us privately first.
 
 Please include:
 
