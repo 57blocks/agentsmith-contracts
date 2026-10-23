@@ -3,51 +3,137 @@
   "networkPassphrase": "Test SDF Network ; September 2015",
   "current": {
     "status": "active",
-    "abi": "two-boundary-v1",
-    "abiSummary": "SettlementTerms { payer, asset, pay_to, facilitator, max_amount, valid_after_ledger, deadline_ledger }; settle(terms, actual_amount); settle_with_approval(terms, actual_amount); errors 1..6",
-    "contractId": "CCXSVNSOC7SPODRUZCWIFYNPHAHNFOMY4BGRO2MRUIV54QLOWJJWOID4",
-    "wasmHash": "5a5b84a0db31c41e3d7b5d563c0aabb55d30fac69f269815162f94094353806b",
-    "installTransaction": "eef1899c90f4f5ec6c3f7dcb1b2f7875231f54775146fe383de2d52c16bb85b9",
-    "deployTransaction": "c15de85dfd4e7bc00520cba5b0b34701d329e6a536e27888ffc71d144f9a5873",
-    "deployedAt": "2026-09-02",
+    "abi": "two-boundary-v2",
+    "abiSummary": "SettlementTerms { payer, asset, pay_to, facilitator, max_amount, valid_after_ledger, deadline_ledger }; settle(terms, actual_amount) with inline approve + transfer_from; errors 1..6",
+    "contractId": "CBB7WCIQOBOJ4G7JUPVOA3RI553HBSYQ3GLBJ25X7W7S7MRJIGVCXRE3",
+    "wasmHash": "ba832b45c0ac604f3aabca40203099556235da24c45e76fdb3bb56dc239de916",
+    "sourceCommit": "dccd19cd5e96b8710127101b7fadc5eb134e33d3",
+    "installTransaction": "7711c15363f8a48487de878cc1b92299bde0d2743aa5b61dea74090ce15515df",
+    "deployTransaction": "7582f44e6bb811d4e07121774724b8147728936db802ebdf46291a0b7ed40549",
+    "deployedAt": "2026-10-20T03:28:32Z",
     "deployer": "GDLBXVYCYOSC4NOB6ZEL6DPX4NJMIXG2ELPJJK3LFIHLPMUGIAMJYSMJ",
-    "wasmHashVerified": "local build of contracts/upto-settlement-kernel produced the same hash",
-    "abiVerified": "stellar contract info interface on the deployed id returns the 7-field SettlementTerms and errors 1..6 from the current source",
-    "payer": "GBW2N6DQ5QQVVUFBMH7KORTUB55JMVJCRAXEAUONUHUGB4ETE5KZ7FNI",
-    "payTo": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
-    "facilitator": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
-    "asset": "USDC (testnet issuer GBBD47IF...), 7 decimals",
+    "protocolVersion": 29,
+    "installLedger": 5288662,
+    "deployLedger": 5288665,
+    "installFeeChargedStroops": "20833736",
+    "deployFeeChargedStroops": "87506",
+    "build": {
+      "rust": "1.94.1",
+      "sorobanSdk": "25.3.0",
+      "target": "wasm32v1-none",
+      "profile": "release",
+      "wasmBytes": 3586
+    },
+    "verification": {
+      "kernelTestsPassed": 21,
+      "accountTestsPassed": 1,
+      "formatCheck": "passed",
+      "clippy": "passed",
+      "onChainWasmHashMatches": true,
+      "onChainFunctions": [
+        "settle"
+      ],
+      "paidSettlementE2E": "passed: buyer authorization built by the agentsmith-x402-sdk UptoStellarClient, facilitator settled a smaller actual amount"
+    },
     "smokeTests": [
       {
-        "transport": "http",
-        "transaction": "a5ffe49f62697c1ae4834b9e6bc6c3d3789ac2efaea65371009a5718b204a440",
-        "ledger": 4461976,
-        "method": "settle_with_approval",
-        "amountAtomic": "10000",
-        "feeCharged": 36525
-      },
-      {
-        "transport": "mcp",
-        "transaction": "f707191c350ae86d98325115f5e5fed7c395f9a8fc5fec55f25cd491171811c9",
-        "ledger": 4461984,
-        "method": "settle_with_approval",
-        "amountAtomic": "10000",
-        "feeCharged": 33919
+        "transport": "direct",
+        "transaction": "38b617d6afae93161480ccddae60adbd91ba36739fab701ab0b869b0dd78093d",
+        "ledger": 5288725,
+        "method": "settle",
+        "maxAmountAtomic": "10000",
+        "amountAtomic": "4000"
       }
     ],
     "smokeTestNotes": [
-      "Both transactions have the facilitator as the transaction source, so the buyer spent no XLM. Fee sponsorship holds.",
-      "USDC moved 20.9759 -> 20.9739 on the payer and 19.0241 -> 19.0261 on the payee, matching two settlements of 10000 atomic units.",
-      "Driven by weather-metar/_upto-buyer.mjs and _upto-mcp-buyer.mjs. These are project-written buyers, not the canonical x402 client, so this is implementation evidence and not conformance evidence."
+      "Payer USDC 0.9920000 -> 0.9916000 and payee 0.0050000 -> 0.0054000, matching a 4000 atomic settlement under a 10000 maximum. The facilitator was the transaction source and payee."
     ]
   },
   "history": [
+    {
+      "status": "superseded",
+      "note": "Replaced as the current integration deployment on 2026-10-20 by the single-entry-point settle ABI; the old contract was not upgraded or disabled.",
+      "abi": "two-boundary-v1",
+      "abiSummary": "SettlementTerms { payer, asset, pay_to, facilitator, max_amount, valid_after_ledger, deadline_ledger }; settle(terms, actual_amount); settle_with_approval(terms, actual_amount); errors 1..6",
+      "contractId": "CAERPD57FOLQZ63ZRZ5RWT7WAA3DK6T3OZE7MHG425V2S3HCWFGPYFF6",
+      "wasmHash": "415023aaeb17553e27d9ab478db361a947f769534913f22b3023e1bd0802183c",
+      "sourceCommit": "ed805657b8faa5fe45ef3b48bb6401cc429b4e59",
+      "installTransaction": "53442754587fd5e57809398c3e284ddc0c0d6ae5dfc4c01f56bc09474b067b15",
+      "deployTransaction": "28798716211e0b0085cb8f9b0e7e75fd4911f822859f9694d5ac781efe7bceea",
+      "deployedAt": "2026-10-14T05:56:48.442Z",
+      "deployer": "GDLBXVYCYOSC4NOB6ZEL6DPX4NJMIXG2ELPJJK3LFIHLPMUGIAMJYSMJ",
+      "protocolVersion": 29,
+      "installLedger": 5186763,
+      "deployLedger": 5186764,
+      "installFeeChargedStroops": "59550719",
+      "deployFeeChargedStroops": "80896",
+      "build": {
+        "rust": "1.94.1",
+        "sorobanSdk": "25.3.0",
+        "target": "wasm32v1-none",
+        "profile": "release",
+        "wasmBytes": 9441
+      },
+      "verification": {
+        "kernelTestsPassed": 20,
+        "accountTestsPassed": 1,
+        "formatCheck": "passed",
+        "clippy": "passed",
+        "onChainWasmHashMatches": true,
+        "onChainFunctions": [
+          "settle",
+          "settle_with_approval"
+        ],
+        "paidSettlementE2E": "not run against this deployment"
+      }
+    },
+    {
+      "status": "superseded",
+      "note": "Replaced as the current integration deployment on 2026-10-14; the old contract was not upgraded or disabled.",
+      "abi": "two-boundary-v1",
+      "abiSummary": "SettlementTerms { payer, asset, pay_to, facilitator, max_amount, valid_after_ledger, deadline_ledger }; settle(terms, actual_amount); settle_with_approval(terms, actual_amount); errors 1..6",
+      "contractId": "CCXSVNSOC7SPODRUZCWIFYNPHAHNFOMY4BGRO2MRUIV54QLOWJJWOID4",
+      "wasmHash": "5a5b84a0db31c41e3d7b5d563c0aabb55d30fac69f269815162f94094353806b",
+      "installTransaction": "eef1899c90f4f5ec6c3f7dcb1b2f7875231f54775146fe383de2d52c16bb85b9",
+      "deployTransaction": "c15de85dfd4e7bc00520cba5b0b34701d329e6a536e27888ffc71d144f9a5873",
+      "deployedAt": "2026-09-02",
+      "deployer": "GDLBXVYCYOSC4NOB6ZEL6DPX4NJMIXG2ELPJJK3LFIHLPMUGIAMJYSMJ",
+      "wasmHashVerified": "a local build of upto-settlement-kernel produced the same hash",
+      "abiVerified": "stellar contract info interface on the deployed id returns the 7-field SettlementTerms and errors 1..6 from the current source",
+      "payer": "GBW2N6DQ5QQVVUFBMH7KORTUB55JMVJCRAXEAUONUHUGB4ETE5KZ7FNI",
+      "payTo": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
+      "facilitator": "GBBH7N4SJNEXK6KALAGGRVWTUN6KNTCKKNNT3VRGMBWNCIEIVUNN7QUY",
+      "asset": "USDC (testnet issuer GBBD47IF...), 7 decimals",
+      "smokeTests": [
+        {
+          "transport": "http",
+          "transaction": "a5ffe49f62697c1ae4834b9e6bc6c3d3789ac2efaea65371009a5718b204a440",
+          "ledger": 4461976,
+          "method": "settle_with_approval",
+          "amountAtomic": "10000",
+          "feeCharged": 36525
+        },
+        {
+          "transport": "mcp",
+          "transaction": "f707191c350ae86d98325115f5e5fed7c395f9a8fc5fec55f25cd491171811c9",
+          "ledger": 4461984,
+          "method": "settle_with_approval",
+          "amountAtomic": "10000",
+          "feeCharged": 33919
+        }
+      ],
+      "smokeTestNotes": [
+        "Both transactions have the facilitator as the transaction source, so the buyer spent no XLM. Fee sponsorship holds.",
+        "USDC moved 20.9759 -> 20.9739 on the payer and 19.0241 -> 19.0261 on the payee, matching two settlements of 10000 atomic units.",
+        "Driven by project-written buyer scripts, not the canonical x402 client, so this is implementation evidence and not conformance evidence."
+      ]
+    },
     {
       "status": "deprecated",
       "abi": "valid-after-plus-approval-terms-v0",
       "abiSummary": "SettlementTerms { asset, facilitator, max_amount, pay_to, payer, valid_after_ledger } with no deadline_ledger; settle_with_approval(terms, actual_amount, approval: ApprovalTerms { amount, live_until_ledger }); errors 1..5 with NotYetValid = 4",
       "contractId": "CAUEGFKFNLELTJDIRFEFE4JSAXRKP5JB6NCZN4I33DFCECICQM7IUUEI",
-      "note": "Found on chain and referenced by contracts/.env, but never recorded here. A separate design line that moved approval amount and expiry out of the settlement terms. Install and deploy transactions are unknown. Incompatible with the current source: different arity, no deadline_ledger, and a different error numbering."
+      "note": "Found on chain in an earlier development configuration, but never recorded here. A separate design line that moved approval amount and expiry out of the settlement terms. Install and deploy transactions are unknown. Incompatible with the current source: different arity, no deadline_ledger, and a different error numbering."
     },
     {
       "status": "deprecated",
