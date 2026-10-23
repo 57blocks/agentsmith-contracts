@@ -1,0 +1,31 @@
+{
+  "network": "stellar:pubnet",
+  "networkPassphrase": "Public Global Stellar Network ; September 2015",
+  "current": {
+    "status": "active",
+    "abi": "two-boundary-v2",
+    "abiSummary": "SettlementTerms { payer, asset, pay_to, facilitator, max_amount, valid_after_ledger, deadline_ledger }; settle(terms, actual_amount) with inline approve + transfer_from; errors 1..6",
+    "contractId": "CCV4RALFBEE2QLKPK6H5ZX24CYMKIFN3723J5J4TMDEFWAFLELGYODNI",
+    "wasmHash": "ba832b45c0ac604f3aabca40203099556235da24c45e76fdb3bb56dc239de916",
+    "sourceCommit": "dccd19cd5e96b8710127101b7fadc5eb134e33d3",
+    "installTransaction": null,
+    "deployTransaction": null,
+    "build": {
+      "rust": "1.94.1",
+      "sorobanSdk": "25.3.0",
+      "target": "wasm32v1-none",
+      "profile": "release",
+      "wasmBytes": 3586
+    },
+    "verification": {
+      "verifiedAt": "2026-10-23",
+      "method": "Fetched the deployed WASM with `stellar contract fetch` and compared its SHA-256 with a local `stellar contract build` of this repository at the source commit; the testnet contract runs the same WASM.",
+      "onChainWasmHashMatches": true,
+      "onChainFunctions": ["settle"]
+    },
+    "notes": [
+      "The install and deploy transactions were not recorded when the contract was deployed."
+    ]
+  },
+  "history": []
+}
