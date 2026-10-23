@@ -1,8 +1,7 @@
 # AgentSmith Soroban contracts
 
-Soroban contracts for the Stellar [x402](https://github.com/x402-foundation/x402) `upto` payment
-scheme, used by the AgentSmith facilitator and the
-[`agentsmith-x402-sdk`](https://www.npmjs.com/package/agentsmith-x402-sdk).
+Soroban contracts for the Stellar x402 `upto` payment scheme, used by the
+[AgentSmith x402 facilitator](https://github.com/57blocks/agentsmith-oss) and `agentsmith-x402-sdk`.
 
 > [!WARNING]
 > **These contracts have not been audited.** They move user funds. The ABI is experimental and
