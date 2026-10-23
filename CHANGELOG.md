@@ -10,9 +10,7 @@ Deployed on testnet (`CBB7WCIQ…XRE3`) and pubnet (`CCV4RALF…ODNI`) from sour
 - One entry point, `settle(terms, actual_amount)`. It approves the kernel for
   `terms.max_amount` until `terms.deadline_ledger` and transfers `actual_amount` from the payer to
   `terms.pay_to` in the same invocation.
-- Replaces both the earlier allowance-only `settle` and `settle_with_approval`. Signatures made for
-  those functions cannot be reused: `settle_with_approval` binds a different function name, and the
-  old `settle` authorization lacks the nested token `approve`.
+- Signatures made for an earlier ABI cannot be reused with this one.
 - The facilitator authorizes the full arguments `(terms, actual_amount)`.
 
 ### Earlier ABIs

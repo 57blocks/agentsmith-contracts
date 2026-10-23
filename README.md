@@ -1,7 +1,8 @@
 # AgentSmith Soroban contracts
 
 Soroban contracts for the Stellar [x402](https://github.com/x402-foundation/x402) `upto` payment
-scheme, used by the [AgentSmith](https://github.com/57blocks/agentsmith) facilitator and SDK.
+scheme, used by the AgentSmith facilitator and the
+[`agentsmith-x402-sdk`](https://www.npmjs.com/package/agentsmith-x402-sdk).
 
 > [!WARNING]
 > **These contracts have not been audited.** They move user funds. The ABI is experimental and
@@ -20,16 +21,16 @@ settles the **actual** amount, which may be lower. `upto-settlement-kernel` enfo
 
 The contract is stateless. It has no owner, admin, upgrade, pause, withdrawal, arbitrary-call or
 storage interface, and it never holds funds. A new version is a new deployment at a new contract
-ID; see [CHANGELOG.md](CHANGELOG.md).
+ID.
 
 ## Deployments
 
 Both networks run the same WASM, built from this repository at source commit `dccd19c`.
 
-| Network            | Contract ID                                                | WASM SHA-256                                                       |
-| ------------------ | ---------------------------------------------------------- | ------------------------------------------------------------------ |
-| `stellar:pubnet`   | `CCV4RALFBEE2QLKPK6H5ZX24CYMKIFN3723J5J4TMDEFWAFLELGYODNI` | `ba832b45c0ac604f3aabca40203099556235da24c45e76fdb3bb56dc239de916` |
-| `stellar:testnet`  | `CBB7WCIQOBOJ4G7JUPVOA3RI553HBSYQ3GLBJ25X7W7S7MRJIGVCXRE3` | `ba832b45c0ac604f3aabca40203099556235da24c45e76fdb3bb56dc239de916` |
+| Network           | Contract ID                                                | WASM SHA-256                                                       |
+| ----------------- | ---------------------------------------------------------- | ------------------------------------------------------------------ |
+| `stellar:pubnet`  | `CCV4RALFBEE2QLKPK6H5ZX24CYMKIFN3723J5J4TMDEFWAFLELGYODNI` | `ba832b45c0ac604f3aabca40203099556235da24c45e76fdb3bb56dc239de916` |
+| `stellar:testnet` | `CBB7WCIQOBOJ4G7JUPVOA3RI553HBSYQ3GLBJ25X7W7S7MRJIGVCXRE3` | `ba832b45c0ac604f3aabca40203099556235da24c45e76fdb3bb56dc239de916` |
 
 Deployment details, verification evidence and deprecated contract IDs are in
 [`deployments/`](deployments/). Use only the contract IDs above.
@@ -74,14 +75,14 @@ not replace it.
 
 ### Errors
 
-| Code | Name                    | When                                         |
-| ---- | ----------------------- | -------------------------------------------- |
-| 1    | `InvalidMaximum`        | `max_amount` is zero or negative.            |
-| 2    | `InvalidActualAmount`   | `actual_amount` is zero or negative.         |
-| 3    | `ExceedsMaximum`        | `actual_amount` is greater than `max_amount`. |
-| 4    | `Expired`               | The current ledger is after `deadline_ledger`. |
+| Code | Name                    | When                                               |
+| ---- | ----------------------- | -------------------------------------------------- |
+| 1    | `InvalidMaximum`        | `max_amount` is zero or negative.                  |
+| 2    | `InvalidActualAmount`   | `actual_amount` is zero or negative.               |
+| 3    | `ExceedsMaximum`        | `actual_amount` is greater than `max_amount`.      |
+| 4    | `Expired`               | The current ledger is after `deadline_ledger`.     |
 | 5    | `NotYetValid`           | The current ledger is before `valid_after_ledger`. |
-| 6    | `InvalidValidityWindow` | `valid_after_ledger` is after `deadline_ledger`. |
+| 6    | `InvalidValidityWindow` | `valid_after_ledger` is after `deadline_ledger`.   |
 
 A missing or wrong authorization fails with the host's authorization error.
 
